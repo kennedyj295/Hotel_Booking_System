@@ -38,5 +38,14 @@ namespace Hotel_Booking_System.Bookings
             GuestName = guestName;
             IsDeluxe = isDeluxe;
         }
+
+        public Booking(int bookedRoomId, decimal rate, DateTime checkInDate, DateTime checkOutDate, string guestName, bool isDeluxe)
+        {
+            BookedRoomId = bookedRoomId;
+            Rate = rate;
+            DateRange = new DateRange(checkInDate, checkOutDate);
+            GuestName = guestName;
+            IsDeluxe = isDeluxe;
+        }
     }
 }

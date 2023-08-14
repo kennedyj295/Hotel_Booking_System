@@ -128,6 +128,16 @@ namespace Hotel_Booking_System.DataConnectivity
 
         public bool AddBookingToDB(int roomID, decimal rate, DateTime checkInDate, DateTime checkOutDate, string guestName, bool isDeluxe) 
         {
+            try
+            {
+                CheckRoomAvailbility(roomID, checkInDate, checkOutDate);
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+            
+
             string query = "INSERT INTO Bookings (RoomID, Rate, CheckInDate, CheckOutDate, GuestName, IsDeluxe) VALUES (@RoomID, @Rate, @CheckInDate, @CheckOutDate, @GuestName, @IsDeluxe)";
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -165,6 +175,7 @@ namespace Hotel_Booking_System.DataConnectivity
                 {
                     room = new StandardRoom
                     (
+                        reader.GetInt32(reader.GetOrdinal("RoomId")),
                         reader.GetInt32(reader.GetOrdinal("RoomNumber")),
                         reader.GetDecimal(reader.GetOrdinal("Price")),
                         reader.GetString(reader.GetOrdinal("RoomType")),
@@ -197,5 +208,50 @@ namespace Hotel_Booking_System.DataConnectivity
             return isAvailable;
         }
 
+        public bool DeleteABooking(int id)
+        {
+            string query = "DELETE FROM BOOKINGS WHERE RoomId = @RoomId";
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@RoomID", id);
+
+                connection.Open();
+
+                int rowsAffected = command.ExecuteNonQuery();
+
+                return rowsAffected == 1;
+            }
+        }
+
+        public bool CheckRoomAvailbility(int roomId, DateTime checkInDate, DateTime checkOutDate)
+        {
+            bool isAvailable = false;
+            string query = "SELECT CASE WHEN COUNT(*) > 0 THEN 'Not Available' ELSE 'Available' END AS AvailabilityStatus FROM Bookings WHERE RoomId = @RoomId AND ((@CheckInDate BETWEEN CheckInDate AND CheckOutDate) OR (@CheckOutDate BETWEEN CheckInDate AND CheckOutDate) OR (CheckInDate BETWEEN @CheckInDate AND @CheckOutDate) OR (CheckOutDate BETWEEN @CheckInDate AND @CheckOutDate))";
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@RoomID", roomId);
+                command.Parameters.AddWithValue("@CheckInDate", checkInDate);
+                command.Parameters.AddWithValue("@CheckOutDate", checkOutDate);
+
+                connection.Open();
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    isAvailable = reader.GetString(reader.GetOrdinal("AvailabilityStatus")) != "Not Available";
+                }
+
+                if (!isAvailable) 
+                {
+                    throw new BookingException("Room is unavailable!");
+                }
+            }
+            return isAvailable;
+        }
     }
 }

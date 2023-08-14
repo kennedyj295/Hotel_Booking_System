@@ -18,6 +18,10 @@ namespace Hotel_Booking_System.Rooms
             HasBalcony = hasBalcony;
         }
 
+        public StandardRoom(int roomId, int roomNumber, decimal price, string? roomType, bool smoking) : base(roomId, roomNumber, price, roomType, smoking)
+        {
+        }
+
         public StandardRoom(int roomNumber, decimal price, bool smoking, string? bedType, bool hasBalcony) : base(roomNumber, price, "Standard", smoking)
         {
             BedType = bedType;

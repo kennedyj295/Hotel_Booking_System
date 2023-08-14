@@ -31,9 +31,6 @@ namespace Hotel_Booking_System
 
         public static void MakeABooking(BookingManager bookingManager)
         {
-            Console.WriteLine("Please select a Room Type: 1 for Standard, 2 for Deluxe");
-            int roomTypeChoice = int.Parse(Console.ReadLine());
-
             Console.WriteLine("Enter the Room Number:");
             int roomNumber = int.Parse(Console.ReadLine());
 
@@ -47,15 +44,25 @@ namespace Hotel_Booking_System
             string guestName = Console.ReadLine();
 
             Room roomToBeBooked = bookingManager.GetSingleRoomByRoomNumber(roomNumber);
+            bool roomType = roomToBeBooked?.RoomType?.ToLower() == "deluxe" ? true : false;
 
-            Booking booking = new Booking(roomTypeChoice, roomNumber, checkInDate, checkOutDate);
+            int numberOfNights = (checkOutDate - checkInDate).Days;
+            decimal roomRate = roomToBeBooked.CalculateRoomRate(numberOfNights, 0);
+
+            Booking booking = new Booking(roomToBeBooked.RoomId, roomRate, checkInDate, checkOutDate, guestName, roomType);
+            bookingManager.AddSingleBooking(booking, checkInDate, checkOutDate);
 
             Console.WriteLine("Booking Successful!");
         }
 
         public static void CancelABooking(BookingManager bookingManager)
         {
-            return;
+            Console.WriteLine("Please enter your booking ID");
+            int bookingId = int.Parse(Console.ReadLine());
+
+            bookingManager.CancelBooking(bookingId);
+
+            Console.WriteLine("Cancellation successful!");
         }
 
         public bool IsRoomAvailable(int roomNumber, BookingManager bookingManager)

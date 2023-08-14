@@ -19,15 +19,38 @@ namespace Hotel_Booking_System.Bookings
             Bookings = bookings != null ? new List<Booking>(bookings) : new List<Booking>();
         }
 
-        public bool AddBooking(Booking booking, DateTime checkInDate, DateTime checkOutDate)
+        public bool AddSingleBooking(Booking booking, DateTime checkInDate, DateTime checkOutDate)
         {
             return _sqlConnector.AddBookingToDB(booking.BookedRoomId, booking.Rate, checkInDate, checkOutDate, booking.GuestName, booking.IsDeluxe); 
         }
 
-        public bool CancelBooking()
+        public void AddMultipleBookings(List<Tuple<Booking, DateTime, DateTime>> bookingRequests)
         {
-            bool t = false;
-            return t;
+            List<Thread> threads = new List<Thread>();
+
+            foreach (var request in bookingRequests)
+            {
+                int roomId = request.Item1.BookedRoomId;
+                DateTime checkInDate = request.Item2;
+                DateTime checkOutDate = request.Item3;
+                string? guestName = request.Item1.GuestName;
+                decimal rate = request.Item1.Rate;
+                bool deluxe = request.Item1.IsDeluxe;
+
+                Thread thread = new Thread(() => _sqlConnector.AddBookingToDB(roomId, rate, checkInDate, checkOutDate, guestName, deluxe));
+                threads.Add(thread);
+                thread.Start();
+            }
+
+            foreach (var thread in threads)
+            {
+                thread.Join();
+            }
+        }
+
+        public bool CancelBooking(int id)
+        {
+            return _sqlConnector.DeleteABooking(id);
         }
 
         public List<Booking> GetBookingList()
@@ -49,12 +72,6 @@ namespace Hotel_Booking_System.Bookings
         {
             return _sqlConnector.GetRoomByRoomNumber(roomNumber);
         }
-
-        public bool BookRoom()
-        {
-            throw new NotImplementedException();
-        }
-
         public bool UpdateBooking()
         {
             throw new NotImplementedException();

@@ -8,11 +8,11 @@ namespace Hotel_Booking_System.Rooms
 {
     public abstract class Room
     {
-        protected int RoomId;
+        public int RoomId { get; set; }
         public int RoomNumber { get; set; }
         public decimal Price { get; set; }
 
-        protected string? RoomType { get; set; } = null;
+        public string? RoomType { get; set; } = null;
 
         protected bool Smoking { get; set; }
 
